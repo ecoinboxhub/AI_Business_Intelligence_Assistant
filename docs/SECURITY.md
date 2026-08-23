@@ -19,7 +19,7 @@ Demarcation of **implemented MVP controls** versus **recommended production enha
 - Dataset generators return cached frames treated as immutable; analysis functions never mutate source data. There is no write endpoint in the entire API surface.
 
 ### 1.5 CORS
-- CORS middleware enabled for local development (currently wildcard `*` — see enhancements).
+- Explicit origin allowlist enforced via `CORSMiddleware` (default: `http://localhost:3030`, `http://127.0.0.1:3030`, `https://ecoinboxhub.github.io`; override with the `CORS_ORIGINS` env var). Native mobile clients send no `Origin` header and are unaffected.
 
 ## 2. Recommended Production Enhancements
 
@@ -30,7 +30,7 @@ Demarcation of **implemented MVP controls** versus **recommended production enha
 | Rate limiting | Per-client throttling (e.g., slowapi) on `/api/questions` to bound LLM cost & abuse |
 | Prompt injection | Input length caps; strip/flag instruction-like payloads; keep intent mapping allowlist-based (already structural); log-and-review flagged inputs |
 | Content safety | Server-side content filtering on LLM output before display; profanity/PII screening |
-| CORS | Replace wildcard with explicit origin allowlist: `http://localhost:3030`, production dashboard origin, mobile app origin |
+| CORS | Allowlist already enforced; extend `CORS_ORIGINS` when adding new dashboard origins |
 | Secrets | Move to a managed secret store (e.g., Azure Key Vault); rotate keys; per-environment isolation |
 | Auditability | Append-only query + response audit log (who asked what, which analysis function ran, data snapshot hash) |
 | Data integrity | Checksum/sign datasets; validate schema on load; version ground-truth benchmarks |
@@ -39,7 +39,6 @@ Demarcation of **implemented MVP controls** versus **recommended production enha
 
 ## 3. Known MVP Gaps (Accepted for Local Development)
 
-1. Wildcard CORS with credentials enabled — acceptable only because the MVP binds to localhost; must be tightened before any network exposure.
-2. No authentication on API endpoints — anyone with network reach to :5050 can query all business data.
-3. Single shared dataset in memory — no multi-tenant isolation.
-4. Narrative text from the LLM is rendered without sanitization beyond framework defaults — apply explicit escaping if rich text is ever introduced.
+1. No authentication on API endpoints — anyone with network reach to :5050 can query all business data.
+2. Single shared dataset in memory — no multi-tenant isolation.
+3. Narrative text from the LLM is rendered without sanitization beyond framework defaults — apply explicit escaping if rich text is ever introduced.
