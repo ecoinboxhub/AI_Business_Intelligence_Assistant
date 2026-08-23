@@ -1,0 +1,35 @@
+# --- Node / JavaScript ---
+node_modules/
+dist/
+web-build/
+npm-debug.log*
+yarn-error.log*
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# --- Environment & secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Expo / React Native ---
+.expo/
+*.orig.*
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# --- Build artifacts ---
+mobile-release.zip
+*.tsbuildinfo
+coverage/

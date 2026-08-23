@@ -1,0 +1,12 @@
+[
+  {
+    "id": "EVAL_01",
+    "question": "Which region has the highest revenue?",
+    "expected_metric": "Lagos"
+  },
+  {
+    "id": "EVAL_02",
+    "question": "Which region has the highest profit margin?",
+    "expected_metric": "Abuja"
+  }
+]
