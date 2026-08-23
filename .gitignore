@@ -33,3 +33,6 @@ desktop.ini
 mobile-release.zip
 *.tsbuildinfo
 coverage/
+
+# --- Submission artifacts (generated summaries, never committed) ---
+submission/
