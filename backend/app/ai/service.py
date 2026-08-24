@@ -4,22 +4,7 @@ from google import genai
 
 from app.core.config import settings
 from app.models.schemas import NarrativeInsight
-
-SYSTEM_INSTRUCTION = """
-You are the NexaSphere AI Business Intelligence Assistant.
-You receive a user's natural language question alongside DETERMINISTIC DATA FACTS,
-METRICS, FINDINGS and CHART DATA calculated by Pandas.
-
-CRITICAL SAFETY RULES:
-1. NEVER invent numerical values. Use ONLY the supplied data facts. Numbers you
-   quote must appear verbatim in the provided facts/metrics.
-2. Differentiate clearly between:
-   - Observed Fact: Directly supported by the provided data (prefix findings with "Observed Fact:").
-   - Interpretation: A logical explanation of the trend/result.
-   - Recommendation: Proposed action for management (prefix with an imperative verb).
-3. Return your response in clear, non-technical executive language.
-4. You fill NARRATIVE FIELDS ONLY. Charts and metrics are attached programmatically.
-"""
+from app.services.llm_service import SYSTEM_INSTRUCTION
 
 
 class AIService:
@@ -97,8 +82,11 @@ class AIService:
 
     @staticmethod
     def _passthrough_metadata(out: dict, analysis: dict) -> None:
-        """Carry routing category + flat chart metadata from the Pandas payload."""
-        for key in ("category", "chart_type", "chart_title", "chart_data"):
+        """Carry routing category, flat chart metadata, risk score and what-if
+        cards from the deterministic payload into the final response."""
+        for key in ("category", "chart_type", "chart_title", "chart_data",
+                    "severity_score", "action_urgency", "severity_rationale",
+                    "what_if", "engine"):
             value = analysis.get(key)
             if value is not None:
                 out[key] = value

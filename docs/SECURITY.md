@@ -19,7 +19,7 @@ Demarcation of **implemented MVP controls** versus **recommended production enha
 - Dataset generators return cached frames treated as immutable; analysis functions never mutate source data. There is no write endpoint in the entire API surface.
 
 ### 1.5 CORS
-- Explicit origin allowlist enforced via `CORSMiddleware` (default: `http://localhost:3030`, `http://127.0.0.1:3030`, `https://ecoinboxhub.github.io`; override with the `CORS_ORIGINS` env var). Native mobile clients send no `Origin` header and are unaffected.
+- Explicit origin allowlist enforced via `CORSMiddleware` (default: `http://localhost:3030`, `http://127.0.0.1:3030`, `https://ecoinboxhub.github.io`, `http://localhost:8091` for the mobile-web preview; override with the `CORS_ORIGINS` env var). Native mobile clients send no `Origin` header and are unaffected.
 
 ## 2. Recommended Production Enhancements
 

@@ -135,7 +135,16 @@ nexasphere-bi-assistant/
 | `/api/insights` | GET | Proactive anomaly insights **computed live by Pandas** (`generate_executive_insights()`): weakest-margin region, delay leader, return hotspot, below-target regions + matching recommendations |
 | `/api/catalog` | GET | The 9 registered analyses `{id, label}` for UI chips |
 | `/api/analysis/{intent_id}` | GET | Run one registered analysis directly |
-| `/api/questions` | POST | Natural-language question → routed via `resolve_intent()` (specificity-weighted keyword scoring: total length of matched patterns decides ties) |
+| `/api/questions` | POST | Natural-language question → routed via `resolve_intent()` (specificity-weighted keyword scoring: total length of matched patterns decides ties). Payload now carries additive innovation fields: `severity_score`, `action_urgency`, `what_if`, `engine` |
+| `/api/questions/stream` | POST | **Server-Sent Events** variant: staged progress events (`DuckDB metrics → synthesis → severity scoring`) with a DuckDB `metric_data` preview, then the full StructuredBIResponse-compatible envelope as the final event |
+| `/api/simulate` | POST | Deterministic what-if engine (`reduce_delivery_delays`, `reduce_returns`, `close_target_gap`, `shift_campaign_spend` × pct) returning baseline/projected/delta in naira |
+
+### Innovation layer (additive, zero breaking changes)
+
+- **DuckDB engine** (`app/analysis/duckdb_engine.py`): coerced dataset frames are registered as zero-copy in-memory views; named analytical queries (`run_fast_query`) and allowlist-validated dynamic specs (`execute_spec`) run in single-digit milliseconds with LRU caching. DuckDB KPIs are cross-validated against the Pandas engine in tests.
+- **Risk scoring** (`app/analysis/risk_scoring.py`): every payload gains a 0-100 `severity_score` + `action_urgency` computed deterministically from analysis facts — the LLM references but never invents them.
+- **What-if simulation** (`app/analysis/whatif.py`): quantified scenario levers (naira impact + basis) attached to every answer and exposed interactively via `/api/simulate`.
+- **LLM contract** (`app/services/llm_service.py`): enhanced prompt instructs the model to weave severity and scenario cards into narrative while treating them as immutable ground truth.
 
 ### Intent Catalog (`INTENT_REGISTRY`)
 

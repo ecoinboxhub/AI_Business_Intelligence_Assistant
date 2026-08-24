@@ -7,6 +7,11 @@ class QuestionRequest(BaseModel):
     conversation_id: Optional[str] = None
 
 
+class SimulateRequest(BaseModel):
+    scenario: str  # reduce_delivery_delays | reduce_returns | close_target_gap | shift_campaign_spend
+    pct: float = 15.0
+
+
 class MetricItem(BaseModel):
     label: str
     value: str
@@ -34,6 +39,12 @@ class StructuredBIResponse(BaseModel):
     chart_data: Optional[List[Dict[str, Any]]] = None
     follow_up_questions: List[str]
     confidence: str = "high"
+    # --- Innovation layer (additive, computed deterministically) ---
+    severity_score: Optional[int] = None          # 0-100 executive escalation score
+    action_urgency: Optional[str] = None          # MONITOR / STANDARD / HIGH_PRIORITY / CRITICAL
+    severity_rationale: Optional[str] = None
+    what_if: Optional[List[Dict[str, Any]]] = None  # quantified scenario levers
+    engine: Optional[str] = None                    # "duckdb" | "pandas" provenance
 
 
 class NarrativeInsight(BaseModel):

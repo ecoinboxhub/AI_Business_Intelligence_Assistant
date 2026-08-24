@@ -77,6 +77,13 @@ body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--
 .risk-item { font-size: 13.5px; color: #92400E; background: #FFFBEB; border-left: 3px solid var(--warn); padding: 7px 10px; border-radius: 6px; margin-bottom: 6px; }
 .metrics-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; align-items: center; }
 .category-badge { display: inline-block; background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; padding: 4px 11px; border-radius: 999px; }
+.severity-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 11px; border-radius: 999px; letter-spacing: .3px; }
+.severity-badge.sev-critical { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+.severity-badge.sev-high_priority { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+.severity-badge.sev-standard { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
+.severity-badge.sev-monitor { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+.whatif-card { background: #F8FAFC; border: 1px dashed var(--border); border-radius: 8px; padding: 8px 12px; margin-top: 8px; font-size: 12.5px; color: #334155; }
+.whatif-card strong { color: #0F172A; }
 .metric-chip { background: var(--tint); color: #3730A3; border: 1px solid #C7D2FE; padding: 5px 11px; border-radius: 999px; font-size: 12px; }
 .metric-chip strong { color: var(--primary); }
 .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }

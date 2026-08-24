@@ -26,6 +26,11 @@ export default function ChatMessage({ response, onFollowUp }) {
         {response.category && (
           <span className="category-badge">{String(response.category).replace(/_/g, ' ')}</span>
         )}
+        {response.severity_score != null && (
+          <span className={`severity-badge sev-${String(response.action_urgency || 'STANDARD').toLowerCase()}`}>
+            Severity {response.severity_score}/100 · {String(response.action_urgency || 'STANDARD').replace(/_/g, ' ')}
+          </span>
+        )}
         {(response.metrics || []).map((m, i) => (
           <span className="metric-chip" key={i}>
             {m.label}: <strong>{m.value}</strong>
@@ -45,6 +50,16 @@ export default function ChatMessage({ response, onFollowUp }) {
       <Section cls="section-facts" title="Observed Facts" items={response.findings} ordered />
       <Section cls="section-risks" title="Risks" items={response.risks} />
       <Section cls="section-recs" title="Recommendations" items={response.recommendations} />
+
+      {response.what_if?.length > 0 && (
+        <div className="whatif-card">
+          <strong>What-If Simulator ·</strong> {response.what_if[0].question}
+          {' '}→ <strong>{response.what_if[0].impact}</strong>
+          <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>
+            Basis: {response.what_if[0].basis}
+          </div>
+        </div>
+      )}
 
       {response.follow_up_questions?.length > 0 && (
         <div className="chip-row">
