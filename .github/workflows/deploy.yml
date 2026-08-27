@@ -116,6 +116,16 @@ jobs:
           cd mobile
           npx expo prebuild --platform android --clean
 
+      - name: Optimize Android Build
+        run: |
+          # Limit to ARM architectures only (drop x86/x86_64 for smaller APK)
+          sed -i 's/reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a,armeabi-v7a/' mobile/android/gradle.properties
+          # Enable ProGuard minification
+          sed -i "s/def enableProguardInReleaseBuilds = (findProperty('android.enableProguardInReleaseBuilds') ?.*/def enableProguardInReleaseBuilds = (findProperty('android.enableProguardInReleaseBuilds') ?: true).toBoolean()/" mobile/android/app/build.gradle
+          # Enable resource shrinking
+          sed -i 's/shrinkResources (findProperty(.android.enableShrinkResourcesInReleaseBuilds.)?.toBoolean() ?: false)/shrinkResources (findProperty("android.enableShrinkResourcesInReleaseBuilds")?.toBoolean() ?: true)/' mobile/android/app/build.gradle
+          echo "Optimizations applied"
+
       - name: Make Gradlew Executable
         run: chmod +x mobile/android/gradlew
 
