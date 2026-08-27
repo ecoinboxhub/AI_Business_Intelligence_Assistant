@@ -133,12 +133,15 @@ jobs:
 
       - name: Rename APK
         run: |
-          cp "${{ steps.find-apk.outputs.apk_path }}" NexaSphere-Mobile-v${GITHUB_REF_NAME#v}.apk
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          cp "${{ steps.find-apk.outputs.apk_path }}" "NexaSphere-Mobile-${VERSION}.apk"
+          echo "Renamed to NexaSphere-Mobile-${VERSION}.apk"
 
       - name: Create GitHub Release & Upload APK
         uses: softprops/action-gh-release@v1
         with:
-          files: NexaSphere-Mobile-v${{ github.ref_name }}.apk
+          files: NexaSphere-Mobile-*.apk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
