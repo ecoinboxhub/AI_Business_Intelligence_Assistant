@@ -25,8 +25,8 @@ except ImportError:  # pragma: no cover
 import numpy as np
 import pandas as pd
 
-DEFAULT_SALES_ROWS = int(os.getenv("MOCK_DATASET_SIZE", "500000"))
-DEFAULT_DELIVERY_ROWS = int(os.getenv("MOCK_DELIVERY_SIZE", "100000"))
+DEFAULT_SALES_ROWS = int(os.getenv("MOCK_DATASET_SIZE", "100000"))
+DEFAULT_DELIVERY_ROWS = int(os.getenv("MOCK_DELIVERY_SIZE", "50000"))
 # Deterministic dataset snapshot. Seed 8 is pinned so that Lagos is the
 # top net-revenue region and Abuja the top-margin region (accuracy
 # benchmark expectations). Override with MOCK_DATASET_SEED.
