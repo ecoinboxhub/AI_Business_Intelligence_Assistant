@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
@@ -21,7 +21,7 @@ export default function ReportsScreen() {
         const c = await fetchCatalog();
         setCatalog(c || []);
         if (c && c.length > 0) {
-          select(c[0].id);
+          selectReport(c[0].id);
         }
       } catch (e) {
         setCatalogError(e.message);
@@ -29,7 +29,7 @@ export default function ReportsScreen() {
     })();
   }, []);
 
-  const select = async (id) => {
+  const selectReport = useCallback(async (id) => {
     setSelected(id);
     setResult(null);
     setError('');
@@ -41,15 +41,15 @@ export default function ReportsScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return (
     <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.title}>Reports</Text>
-            <Text style={styles.sub}>All nine business dimensions</Text>
+            <Text style={styles.sub}>Nine business dimensions</Text>
           </View>
           <View style={styles.headerBadge}>
             <Ionicons name="document-text" size={16} color={COLORS.emerald} />
@@ -61,7 +61,10 @@ export default function ReportsScreen() {
             <Ionicons name="cloud-offline" size={16} color={COLORS.crimson} />
             <View style={{ flex: 1 }}>
               <Text style={styles.errorTitle}>Connection Error</Text>
-              <Text style={styles.error}>{catalogError}</Text>
+              <Text style={styles.errorMsg}>{catalogError}</Text>
+              <TouchableOpacity onPress={() => selectReport(selected || catalog[0]?.id)}>
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
             </View>
           </View>
         ) : null}
@@ -77,7 +80,8 @@ export default function ReportsScreen() {
               <TouchableOpacity
                 key={c.id}
                 style={[styles.tabChip, selected === c.id && styles.tabChipActive]}
-                onPress={() => select(c.id)}
+                onPress={() => selectReport(c.id)}
+                activeOpacity={0.7}
               >
                 <Text
                   style={[styles.tabText, selected === c.id && styles.tabTextActive]}
@@ -93,7 +97,12 @@ export default function ReportsScreen() {
         {error ? (
           <View style={styles.errorBanner}>
             <Ionicons name="warning" size={16} color={COLORS.warn} />
-            <Text style={styles.error}>{error}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.errorMsg}>{error}</Text>
+              <TouchableOpacity onPress={() => selectReport(selected)}>
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ) : null}
 
@@ -101,6 +110,7 @@ export default function ReportsScreen() {
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="large" color={COLORS.primary} />
             <Text style={styles.loadingText}>Loading report...</Text>
+            <Text style={styles.loadingHint}>First load may take 30s</Text>
           </View>
         ) : result ? (
           <>
@@ -115,7 +125,10 @@ export default function ReportsScreen() {
 
             {(result.metrics || []).length > 0 && (
               <View style={styles.card}>
-                <Text style={[styles.sectionLabel, { color: COLORS.primary }]}>KEY METRICS</Text>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="analytics" size={14} color={COLORS.primary} />
+                  <Text style={[styles.sectionLabel, { color: COLORS.primary }]}>KEY METRICS</Text>
+                </View>
                 {(result.metrics || []).map((m, i) => (
                   <View key={i} style={styles.metricRow}>
                     <Text style={styles.metricLabel}>{m.label}</Text>
@@ -127,34 +140,83 @@ export default function ReportsScreen() {
 
             <View style={styles.card}>
               {(result.findings || []).length > 0 && (
-                <View style={{ marginBottom: 12 }}>
-                  <Text style={[styles.sectionLabel, { color: '#0369A1' }]}>OBSERVED FACTS</Text>
+                <View style={{ marginBottom: 14 }}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="eye" size={14} color="#0369A1" />
+                    <Text style={[styles.sectionLabel, { color: '#0369A1' }]}>OBSERVED FACTS</Text>
+                  </View>
                   {(result.findings || []).map((f, i) => (
-                    <Text key={i} style={styles.factItem}>• {f}</Text>
+                    <View key={i} style={styles.findingRow}>
+                      <View style={styles.findingDot} />
+                      <Text style={styles.factItem}>{f}</Text>
+                    </View>
                   ))}
                 </View>
               )}
 
               {(result.risks || []).length > 0 && (
-                <View style={{ marginBottom: 12 }}>
-                  <Text style={[styles.sectionLabel, { color: COLORS.warn }]}>RISKS</Text>
+                <View style={{ marginBottom: 14 }}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="alert-circle" size={14} color={COLORS.warn} />
+                    <Text style={[styles.sectionLabel, { color: COLORS.warn }]}>RISKS</Text>
+                  </View>
                   {(result.risks || []).map((r, i) => (
-                    <Text key={i} style={styles.riskItem}>⚠ {r}</Text>
+                    <View key={i} style={styles.riskRow}>
+                      <Ionicons name="warning" size={12} color={COLORS.warn} />
+                      <Text style={styles.riskItem}>{r}</Text>
+                    </View>
                   ))}
                 </View>
               )}
 
               {(result.recommendations || []).length > 0 && (
                 <View>
-                  <Text style={[styles.sectionLabel, { color: COLORS.success }]}>RECOMMENDATIONS</Text>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="checkmark-circle" size={14} color={COLORS.success} />
+                    <Text style={[styles.sectionLabel, { color: COLORS.success }]}>RECOMMENDATIONS</Text>
+                  </View>
                   {(result.recommendations || []).map((r, i) => (
                     <View key={i} style={styles.recItem}>
+                      <Ionicons name="checkmark-circle" size={14} color={COLORS.success} />
                       <Text style={styles.recText}>{r}</Text>
                     </View>
                   ))}
                 </View>
               )}
             </View>
+
+            {(result.what_if || []).length > 0 && (
+              <View style={styles.card}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="flash" size={14} color="#8B5CF6" />
+                  <Text style={[styles.sectionLabel, { color: '#8B5CF6' }]}>WHAT-IF SCENARIOS</Text>
+                </View>
+                {result.what_if.map((w, i) => (
+                  <View key={i} style={styles.whatifItem}>
+                    <Text style={styles.whatifQuestion}>{w.question}</Text>
+                    <View style={styles.whatifImpact}>
+                      <Text style={styles.whatifImpactText}>{w.impact}</Text>
+                    </View>
+                    <Text style={styles.whatifBasis}>{w.basis}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {result.severity_score != null && (
+              <View style={styles.severityBar}>
+                <Text style={styles.severityLabel}>Severity</Text>
+                <View style={styles.severityTrack}>
+                  <View style={[styles.severityFill, { width: `${Math.min(result.severity_score, 100)}%` }]} />
+                </View>
+                <Text style={styles.severityValue}>{result.severity_score}/100</Text>
+                <View style={[styles.urgencyBadge, { backgroundColor: result.action_urgency === 'URGENT' ? '#FEF2F2' : '#FFFBEB' }]}>
+                  <Text style={[styles.urgencyText, { color: result.action_urgency === 'URGENT' ? COLORS.crimson : COLORS.warn }]}>
+                    {result.action_urgency}
+                  </Text>
+                </View>
+              </View>
+            )}
           </>
         ) : !catalogError && catalog.length === 0 ? (
           <View style={styles.loadingWrap}>
@@ -201,7 +263,7 @@ const styles = StyleSheet.create({
   tabTextActive: { color: '#fff' },
   errorBanner: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 10,
     backgroundColor: '#FEF2F2',
     borderRadius: 10,
@@ -211,9 +273,11 @@ const styles = StyleSheet.create({
     borderLeftColor: COLORS.crimson,
   },
   errorTitle: { fontSize: 12, fontWeight: '700', color: COLORS.crimson },
-  error: { color: COLORS.crimson, fontSize: 12, flexShrink: 1 },
+  errorMsg: { color: COLORS.crimson, fontSize: 12, flexShrink: 1 },
+  retryText: { fontSize: 12, fontWeight: '700', color: COLORS.primary, marginTop: 4 },
   loadingWrap: { alignItems: 'center', marginTop: 40 },
   loadingText: { fontSize: 13, color: COLORS.textSoft, marginTop: 10 },
+  loadingHint: { fontSize: 11, color: '#9CA3AF', marginTop: 4 },
   card: {
     backgroundColor: COLORS.card,
     borderRadius: 12,
@@ -227,7 +291,8 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 14, fontWeight: '700', color: COLORS.text, marginBottom: 10 },
   noChart: { fontSize: 12, color: COLORS.textSoft, textAlign: 'center', paddingVertical: 30 },
-  sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5, marginBottom: 8 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
   metricRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -237,9 +302,15 @@ const styles = StyleSheet.create({
   },
   metricLabel: { fontSize: 12.5, color: COLORS.textSoft, flexShrink: 1, marginRight: 8 },
   metricValue: { fontSize: 12.5, fontWeight: '700', color: COLORS.primary },
-  factItem: { fontSize: 12.5, color: '#334155', marginBottom: 4, paddingLeft: 4 },
-  riskItem: { fontSize: 12.5, color: '#92400E', marginBottom: 4, paddingLeft: 4 },
+  findingRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 4 },
+  findingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#0369A1', marginTop: 5 },
+  factItem: { fontSize: 12.5, color: '#334155', flex: 1, lineHeight: 18 },
+  riskRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 4 },
+  riskItem: { fontSize: 12.5, color: '#92400E', flex: 1, lineHeight: 18 },
   recItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
     backgroundColor: '#F0FDF4',
     borderLeftWidth: 3,
     borderLeftColor: COLORS.success,
@@ -247,5 +318,46 @@ const styles = StyleSheet.create({
     padding: 8,
     marginTop: 4,
   },
-  recText: { fontSize: 12.5, color: '#14532D', lineHeight: 18 },
+  recText: { fontSize: 12.5, color: '#14532D', lineHeight: 18, flex: 1 },
+  whatifItem: {
+    backgroundColor: '#FAF5FF',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: '#E9D5FF',
+  },
+  whatifQuestion: { fontSize: 12.5, fontWeight: '600', color: '#581C87', marginBottom: 4 },
+  whatifImpact: {
+    backgroundColor: '#DDD6FE',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  whatifImpactText: { fontSize: 11, fontWeight: '700', color: '#581C87' },
+  whatifBasis: { fontSize: 11, color: '#7C3AED' },
+  severityBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.card,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 14,
+    elevation: 1,
+  },
+  severityLabel: { fontSize: 11, fontWeight: '600', color: COLORS.textSoft },
+  severityTrack: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F1F5F9',
+    overflow: 'hidden',
+  },
+  severityFill: { height: '100%', borderRadius: 3, backgroundColor: COLORS.amber },
+  severityValue: { fontSize: 11, fontWeight: '700', color: COLORS.text },
+  urgencyBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  urgencyText: { fontSize: 10, fontWeight: '700' },
 });

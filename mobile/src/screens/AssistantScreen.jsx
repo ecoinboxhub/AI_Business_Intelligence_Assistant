@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  ActivityIndicator, ScrollView, StyleSheet, Text, TextInput,
+  ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TextInput,
   TouchableOpacity, View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,11 +8,34 @@ import { askQuestion } from '../services/api';
 import ChartView from '../components/ChartView';
 import { COLORS } from '../theme';
 
+const { width: SCREEN_W } = Dimensions.get('window');
+
+const QUICK_QUESTIONS = [
+  'What are the top revenue drivers?',
+  'Which products have high return rates?',
+  'How are our delivery partners performing?',
+  'What is our inventory health status?',
+  'Which customer segments are most valuable?',
+  'Are we meeting our business targets?',
+];
+
 export default function AssistantScreen({ catalog }) {
   const [question, setQuestion] = useState('');
   const [thread, setThread] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const scrollRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [thread, loading]);
 
   const ask = async (q) => {
     const text = (q || question).trim();
@@ -33,31 +56,50 @@ export default function AssistantScreen({ catalog }) {
   };
 
   const suggestions = (catalog || []).slice(0, 6);
+  const showSuggestions = thread.length === 0 && !loading;
 
   return (
     <View style={styles.screen}>
       <ScrollView
+        ref={scrollRef}
         style={styles.scroll}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.title}>AI Assistant</Text>
-            <Text style={styles.sub}>Structured answers · Pandas-computed numbers</Text>
+            <Text style={styles.sub}>Ask any business question</Text>
           </View>
-          <View style={styles.headerBadge}>
-            <Ionicons name="sparkles" size={16} color={COLORS.sky} />
-          </View>
+          {thread.length > 0 && (
+            <TouchableOpacity onPress={() => { setThread([]); setError(''); }} style={styles.clearBtn}>
+              <Ionicons name="trash-outline" size={16} color={COLORS.crimson} />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {suggestions.length > 0 && thread.length === 0 && (
+        {showSuggestions && (
           <View style={styles.suggestionSection}>
             <Text style={styles.suggestionLabel}>Quick questions</Text>
             <View style={styles.chipWrap}>
+              {QUICK_QUESTIONS.map((q, i) => (
+                <TouchableOpacity key={i} style={styles.chip} onPress={() => ask(q)} activeOpacity={0.7}>
+                  <Ionicons name="flash" size={12} color={COLORS.primary} />
+                  <Text style={styles.chipText} numberOfLines={1}>{q}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {showSuggestions && suggestions.length > 0 && (
+          <View style={styles.suggestionSection}>
+            <Text style={styles.suggestionLabel}>From the catalog</Text>
+            <View style={styles.chipWrap}>
               {suggestions.map((c) => (
-                <TouchableOpacity key={c.id} style={styles.chip} onPress={() => ask(c.label)}>
-                  <Text style={styles.chipText}>{c.label}</Text>
+                <TouchableOpacity key={c.id} style={styles.chip} onPress={() => ask(c.label)} activeOpacity={0.7}>
+                  <Text style={styles.chipText} numberOfLines={1}>{c.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -69,7 +111,7 @@ export default function AssistantScreen({ catalog }) {
             <Ionicons name="cloud-offline" size={16} color={COLORS.crimson} />
             <View style={{ flex: 1 }}>
               <Text style={styles.errorTitle}>Request Failed</Text>
-              <Text style={styles.error}>{error}</Text>
+              <Text style={styles.errorMsg}>{error}</Text>
             </View>
           </View>
         ) : null}
@@ -126,6 +168,7 @@ export default function AssistantScreen({ catalog }) {
                   <Text style={[styles.sectionLabel, { color: COLORS.success }]}>RECOMMENDATIONS</Text>
                   {(t.res.recommendations || []).map((r, ri) => (
                     <View key={ri} style={styles.recItem}>
+                      <Ionicons name="checkmark-circle" size={14} color={COLORS.success} />
                       <Text style={styles.recText}>{r}</Text>
                     </View>
                   ))}
@@ -136,7 +179,7 @@ export default function AssistantScreen({ catalog }) {
                 <View style={styles.followUpSection}>
                   <Text style={styles.followUpLabel}>Follow-up questions</Text>
                   {(t.res.follow_up_questions || []).slice(0, 3).map((fq, fqi) => (
-                    <TouchableOpacity key={fqi} style={styles.followUpChip} onPress={() => ask(fq)}>
+                    <TouchableOpacity key={fqi} style={styles.followUpChip} onPress={() => ask(fq)} activeOpacity={0.7}>
                       <Ionicons name="arrow-forward-circle" size={14} color={COLORS.primary} />
                       <Text style={styles.followUpText} numberOfLines={1}>{fq}</Text>
                     </TouchableOpacity>
@@ -148,9 +191,13 @@ export default function AssistantScreen({ catalog }) {
         )}
 
         {loading && (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={COLORS.primary} />
-            <Text style={styles.loadingText}>Analyzing...</Text>
+          <View style={styles.typingCard}>
+            <View style={styles.typingDots}>
+              <View style={[styles.dot, styles.dot1]} />
+              <View style={[styles.dot, styles.dot2]} />
+              <View style={[styles.dot, styles.dot3]} />
+            </View>
+            <Text style={styles.typingText}>Analyzing your question...</Text>
           </View>
         )}
 
@@ -159,6 +206,7 @@ export default function AssistantScreen({ catalog }) {
 
       <View style={styles.inputBar}>
         <TextInput
+          ref={inputRef}
           style={styles.input}
           placeholder="Ask a business question..."
           placeholderTextColor="#94A3B8"
@@ -166,13 +214,15 @@ export default function AssistantScreen({ catalog }) {
           onChangeText={setQuestion}
           onSubmitEditing={() => ask()}
           editable={!loading}
+          returnKeyType="send"
         />
         <TouchableOpacity
-          style={[styles.askBtn, (!question.trim() || loading) && { opacity: 0.5 }]}
+          style={[styles.askBtn, (!question.trim() || loading) && { opacity: 0.4 }]}
           onPress={() => ask()}
           disabled={loading || !question.trim()}
+          activeOpacity={0.7}
         >
-          <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
+          <Ionicons name="arrow-up" size={22} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </View>
@@ -191,24 +241,28 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 22, fontWeight: '800', color: COLORS.text },
   sub: { fontSize: 12, color: COLORS.textSoft, marginTop: 2 },
-  headerBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#F0F9FF',
+  clearBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#FEF2F2',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  suggestionSection: { marginBottom: 12 },
+  suggestionSection: { marginBottom: 14 },
   suggestionLabel: { fontSize: 12, fontWeight: '600', color: COLORS.textSoft, marginBottom: 8 },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     backgroundColor: '#EEF2FF',
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 20,
+    maxWidth: SCREEN_W - 40,
   },
-  chipText: { color: COLORS.primary, fontSize: 12, fontWeight: '500' },
+  chipText: { color: COLORS.primary, fontSize: 12, fontWeight: '500', flexShrink: 1 },
   userBubble: {
     alignSelf: 'flex-end',
     backgroundColor: COLORS.primary,
@@ -219,7 +273,7 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     maxWidth: '85%',
   },
-  userText: { color: '#fff', fontSize: 13.5 },
+  userText: { color: '#fff', fontSize: 13.5, lineHeight: 19 },
   aiCard: {
     backgroundColor: COLORS.card,
     borderRadius: 12,
@@ -245,6 +299,9 @@ const styles = StyleSheet.create({
   factItem: { fontSize: 12.5, color: '#334155', marginBottom: 4, paddingLeft: 4 },
   riskItem: { fontSize: 12.5, color: '#92400E', marginBottom: 4, paddingLeft: 4 },
   recItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
     backgroundColor: '#F0FDF4',
     borderLeftWidth: 3,
     borderLeftColor: COLORS.success,
@@ -252,7 +309,7 @@ const styles = StyleSheet.create({
     padding: 8,
     marginTop: 4,
   },
-  recText: { fontSize: 12.5, color: '#14532D', lineHeight: 18 },
+  recText: { fontSize: 12.5, color: '#14532D', lineHeight: 18, flex: 1 },
   followUpSection: { marginTop: 12 },
   followUpLabel: { fontSize: 11, fontWeight: '600', color: COLORS.textSoft, marginBottom: 6 },
   followUpChip: {
@@ -262,20 +319,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     borderRadius: 8,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 9,
     marginBottom: 4,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   followUpText: { fontSize: 12, color: COLORS.primary, flex: 1 },
-  loadingRow: {
-    flexDirection: 'row',
+  typingCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: 14,
+    marginTop: 8,
     alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-    paddingLeft: 4,
   },
-  loadingText: { fontSize: 13, color: COLORS.textSoft },
+  typingDots: { flexDirection: 'row', gap: 4, marginBottom: 8 },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.primary,
+    opacity: 0.4,
+  },
+  dot1: { opacity: 1 },
+  dot2: { opacity: 0.7 },
+  dot3: { opacity: 0.4 },
+  typingText: { fontSize: 12, color: COLORS.textSoft },
   inputBar: {
     flexDirection: 'row',
     gap: 8,
@@ -315,7 +385,7 @@ const styles = StyleSheet.create({
     borderLeftColor: COLORS.crimson,
   },
   errorTitle: { fontSize: 12, fontWeight: '700', color: COLORS.crimson, marginBottom: 2 },
-  error: { color: COLORS.crimson, fontSize: 12, flexShrink: 1 },
+  errorMsg: { color: COLORS.crimson, fontSize: 12, flexShrink: 1 },
   chartCard: {
     backgroundColor: '#F8FAFC',
     borderRadius: 8,

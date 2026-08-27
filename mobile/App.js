@@ -23,19 +23,27 @@ const TAB_ICONS = {
 };
 
 function SplashScreen({ onReady }) {
-  const [status, setStatus] = useState('Connecting...');
+  const [status, setStatus] = useState('Connecting to server...');
 
   useEffect(() => {
     (async () => {
       try {
-        const base = await getApiBase();
-        setStatus(`Connecting to ${base.replace(/^https?:\/\//, '').replace(/\/api$/, '')}...`);
+        const base = getApiBase();
+        const host = base.replace(/^https?:\/\//, '').replace(/\/api$/, '');
+        setStatus(`Connecting to ${host}...`);
         await fetchCatalog();
         setStatus('Connected');
       } catch {
-        setStatus('Offline — configure API in Settings');
+        setStatus('Server waking up...');
+        await new Promise((r) => setTimeout(r, 2000));
+        try {
+          await fetchCatalog();
+          setStatus('Connected');
+        } catch {
+          setStatus('Offline — will retry when you open a tab');
+        }
       }
-      setTimeout(() => onReady(), 600);
+      setTimeout(() => onReady(), 500);
     })();
   }, []);
 

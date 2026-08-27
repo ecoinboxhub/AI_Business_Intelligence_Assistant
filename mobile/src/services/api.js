@@ -1,47 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+const API_BASE = 'https://ai-business-intelligence-assistant.onrender.com/api';
 
-const BASE_KEY = '@nexasphere_api_base';
-const CONNECTED_KEY = '@nexasphere_connected';
-
-const HOSTED_BASE = 'https://ai-business-intelligence-assistant.onrender.com/api';
-
-function getDefaultBase() {
-  return HOSTED_BASE;
-}
-
-export async function getApiBase() {
-  try {
-    return (await AsyncStorage.getItem(BASE_KEY)) || getDefaultBase();
-  } catch {
-    return getDefaultBase();
-  }
-}
-
-export async function setApiBase(base) {
-  const trimmed = (base || '').trim().replace(/\/+$/, '');
-  if (trimmed) {
-    await AsyncStorage.setItem(BASE_KEY, trimmed);
-  } else {
-    await AsyncStorage.removeItem(BASE_KEY);
-  }
-}
-
-export async function isConnected() {
-  try {
-    const v = await AsyncStorage.getItem(CONNECTED_KEY);
-    return v === 'true';
-  } catch {
-    return false;
-  }
-}
-
-export async function setConnected(v) {
-  await AsyncStorage.setItem(CONNECTED_KEY, v ? 'true' : 'false');
-}
+const TIMEOUT_MS = 15000;
 
 async function apiFetch(url, opts = {}) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const res = await fetch(url, { ...opts, signal: controller.signal });
     clearTimeout(timeout);
@@ -53,18 +16,22 @@ async function apiFetch(url, opts = {}) {
   } catch (e) {
     clearTimeout(timeout);
     if (e.name === 'AbortError' || e.message?.includes('abort')) {
-      throw new Error('Connection timed out — check your network and API URL in Settings');
+      throw new Error('Connection timed out — server may be waking up, try again');
     }
     if (e.message?.includes('Network request failed') || e.message?.includes('Failed to fetch')) {
-      throw new Error('Cannot reach server — ensure the backend is running and the API URL is correct in Settings');
+      throw new Error('Cannot reach server — check your internet connection');
     }
     throw e;
   }
 }
 
-export async function testConnection(url) {
+export function getApiBase() {
+  return API_BASE;
+}
+
+export async function testConnection() {
   try {
-    const res = await apiFetch(`${url}/health`);
+    const res = await apiFetch(`${API_BASE}/health`);
     return res.status === 'healthy';
   } catch {
     return false;
@@ -72,23 +39,23 @@ export async function testConnection(url) {
 }
 
 export async function fetchKPIs() {
-  const base = await getApiBase();
-  return apiFetch(`${base}/kpis`);
+  return apiFetch(`${API_BASE}/kpis`);
+}
+
+export async function fetchInsights() {
+  return apiFetch(`${API_BASE}/insights`);
 }
 
 export async function fetchCatalog() {
-  const base = await getApiBase();
-  return apiFetch(`${base}/catalog`);
+  return apiFetch(`${API_BASE}/catalog`);
 }
 
 export async function fetchAnalysis(intentId) {
-  const base = await getApiBase();
-  return apiFetch(`${base}/analysis/${intentId}`);
+  return apiFetch(`${API_BASE}/analysis/${intentId}`);
 }
 
 export async function askQuestion(question) {
-  const base = await getApiBase();
-  return apiFetch(`${base}/questions`, {
+  return apiFetch(`${API_BASE}/questions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question }),

@@ -1,57 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
+  ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getApiBase, setApiBase, testConnection } from '../services/api';
+import { getApiBase, testConnection } from '../services/api';
 import { COLORS } from '../theme';
 
 export default function SettingsScreen() {
-  const [base, setBase] = useState('');
-  const [saved, setSaved] = useState(false);
-  const [testing, setTesting] = useState(false);
   const [connected, setConnected] = useState(null);
-  const [loaded, setLoaded] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [base, setBase] = useState('');
 
   useEffect(() => {
-    getApiBase().then((url) => {
-      setBase(url);
-      setLoaded(true);
-    });
+    setBase(getApiBase());
+    checkConnection();
   }, []);
 
-  const check = async () => {
+  const checkConnection = async () => {
     setTesting(true);
     setConnected(null);
-    const ok = await testConnection(base);
+    const ok = await testConnection();
     setConnected(ok);
     setTesting(false);
   };
 
-  const save = async () => {
-    const trimmed = (base || '').trim().replace(/\/+$/, '');
-    if (!trimmed) return;
-    await setApiBase(trimmed);
-    setBase(trimmed);
-    setSaved(true);
-    await check();
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  if (!loaded) {
-    return (
-      <View style={[styles.screen, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
-
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.title}>Settings</Text>
-          <Text style={styles.sub}>Backend API connection</Text>
+          <Text style={styles.sub}>Backend connection</Text>
         </View>
         <View style={styles.headerBadge}>
           <Ionicons name="server-outline" size={16} color={COLORS.amber} />
@@ -59,80 +37,86 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.label}>API Base URL</Text>
-        <TextInput
-          style={styles.input}
-          value={base}
-          onChangeText={(t) => { setBase(t); setConnected(null); setSaved(false); }}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="url"
-          placeholder="https://ai-business-intelligence-assistant.onrender.com/api"
-          placeholderTextColor="#94A3B8"
-        />
+        <View style={styles.cardHeader}>
+          <Ionicons name="cloud-done" size={18} color={COLORS.primary} />
+          <Text style={styles.cardTitle}>API Connection</Text>
+        </View>
+
+        <View style={styles.urlBox}>
+          <Text style={styles.urlLabel}>Hosted Backend</Text>
+          <Text style={styles.urlText} selectable>{base}</Text>
+        </View>
 
         <View style={styles.statusRow}>
           {testing ? (
             <View style={styles.statusItem}>
               <ActivityIndicator size="small" color={COLORS.primary} />
-              <Text style={styles.statusText}>Testing...</Text>
+              <Text style={styles.statusText}>Testing connection...</Text>
             </View>
           ) : connected === true ? (
             <View style={styles.statusItem}>
               <View style={[styles.statusDot, { backgroundColor: COLORS.success }]} />
-              <Text style={[styles.statusText, { color: COLORS.success }]}>Connected</Text>
+              <Text style={[styles.statusText, { color: COLORS.success }]}>Connected and healthy</Text>
             </View>
           ) : connected === false ? (
             <View style={styles.statusItem}>
               <View style={[styles.statusDot, { backgroundColor: COLORS.crimson }]} />
-              <Text style={[styles.statusText, { color: COLORS.crimson }]}>Cannot connect</Text>
+              <Text style={[styles.statusText, { color: COLORS.crimson }]}>Server may be sleeping</Text>
             </View>
           ) : null}
-          {saved && (
-            <View style={styles.statusItem}>
-              <Ionicons name="checkmark-circle" size={14} color={COLORS.success} />
-              <Text style={[styles.statusText, { color: COLORS.success }]}>Saved</Text>
-            </View>
-          )}
         </View>
 
-        <View style={styles.btnRow}>
-          <TouchableOpacity style={[styles.btn, styles.testBtn]} onPress={check} disabled={testing}>
-            <Ionicons name="refresh" size={16} color={COLORS.primary} />
-            <Text style={styles.testBtnText}>Test</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.btn, styles.saveBtn]} onPress={save} disabled={testing}>
-            <Ionicons name="save-outline" size={16} color="#FFFFFF" />
-            <Text style={styles.saveBtnText}>Save & Connect</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.testBtn} onPress={checkConnection} disabled={testing} activeOpacity={0.7}>
+          <Ionicons name="refresh" size={16} color={COLORS.primary} />
+          <Text style={styles.testBtnText}>{testing ? 'Testing...' : 'Test Connection'}</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.helpTitle}>How it works</Text>
+        <View style={styles.cardHeader}>
+          <Ionicons name="information-circle" size={18} color={COLORS.sky} />
+          <Text style={styles.cardTitle}>How it works</Text>
+        </View>
 
         <View style={styles.helpStep}>
           <View style={styles.stepNum}><Text style={styles.stepNumText}>1</Text></View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.stepTitle}>Backend is hosted on Fly.io</Text>
-            <Text style={styles.stepCode}>https://ai-business-intelligence-assistant.onrender.com/api</Text>
-            <Text style={styles.stepHint}>No setup needed — the app connects automatically</Text>
+            <Text style={styles.stepTitle}>Hosted on Render</Text>
+            <Text style={styles.stepHint}>The backend runs on Render.com's free tier</Text>
           </View>
         </View>
 
         <View style={styles.helpStep}>
           <View style={styles.stepNum}><Text style={styles.stepNumText}>2</Text></View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.stepTitle}>Or connect to your own backend</Text>
-            <Text style={styles.stepCode}>http://YOUR_IP:5050/api</Text>
-            <Text style={styles.stepHint}>Both devices must be on the same Wi-Fi network</Text>
+            <Text style={styles.stepTitle}>Cold start</Text>
+            <Text style={styles.stepHint}>First request after idle may take 30-60 seconds</Text>
+          </View>
+        </View>
+
+        <View style={styles.helpStep}>
+          <View style={styles.stepNum}><Text style={styles.stepNumText}>3</Text></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.stepTitle}>Deterministic analytics</Text>
+            <Text style={styles.stepHint}>All numbers computed via Pandas — no AI hallucination</Text>
           </View>
         </View>
       </View>
 
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Ionicons name="key" size={18} color={COLORS.emerald} />
+          <Text style={styles.cardTitle}>AI Narrative</Text>
+        </View>
+        <Text style={styles.stepHint}>
+          AI-powered narrative insights are generated when the GEMINI_API_KEY is configured on the server.
+          Without it, only deterministic metrics and charts are shown.
+        </Text>
+      </View>
+
       <Text style={styles.footer}>
         NexaSphere Mobile BI v1.0{'\n'}
-        All figures computed deterministically via Pandas on the backend.
+        Zero-hallucination business intelligence
       </Text>
     </ScrollView>
   );
@@ -168,61 +152,42 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 3,
   },
-  label: { fontSize: 13, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
-  input: {
+  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  cardTitle: { fontSize: 14, fontWeight: '700', color: COLORS.text },
+  urlBox: {
     backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    height: 48,
-    fontSize: 14,
-    color: COLORS.text,
   },
-  statusRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 10,
-    minHeight: 20,
-  },
+  urlLabel: { fontSize: 10, fontWeight: '600', color: COLORS.textSoft, marginBottom: 4 },
+  urlText: { fontSize: 12, fontFamily: 'monospace', color: COLORS.primary, lineHeight: 18 },
+  statusRow: { minHeight: 24, marginBottom: 10 },
   statusItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontSize: 12, fontWeight: '600', color: COLORS.textSoft },
-  btnRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 14,
-  },
-  btn: {
-    flex: 1,
+  testBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    borderRadius: 10,
-    paddingVertical: 12,
-  },
-  testBtn: {
     backgroundColor: '#F1F5F9',
     borderWidth: 1,
     borderColor: COLORS.border,
+    borderRadius: 10,
+    paddingVertical: 12,
   },
   testBtnText: { color: COLORS.primary, fontWeight: '700', fontSize: 13 },
-  saveBtn: { backgroundColor: COLORS.primary },
-  saveBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
-  helpTitle: { fontSize: 14, fontWeight: '700', color: COLORS.text, marginBottom: 14 },
   helpStep: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   stepNum: {
     width: 24,
@@ -234,17 +199,8 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   stepNumText: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' },
-  stepTitle: { fontSize: 13, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
-  stepCode: {
-    fontSize: 12,
-    fontFamily: 'monospace',
-    color: COLORS.primary,
-    backgroundColor: '#F8FAFC',
-    padding: 8,
-    borderRadius: 6,
-    lineHeight: 18,
-  },
-  stepHint: { fontSize: 11, color: COLORS.textSoft, marginTop: 4 },
+  stepTitle: { fontSize: 13, fontWeight: '700', color: COLORS.text, marginBottom: 2 },
+  stepHint: { fontSize: 11, color: COLORS.textSoft, lineHeight: 16 },
   footer: {
     fontSize: 11,
     color: COLORS.textSoft,
