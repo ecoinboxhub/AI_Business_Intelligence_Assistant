@@ -67,7 +67,7 @@ export default function SettingsScreen() {
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
-          placeholder="https://nexasphere-bi.fly.dev/api"
+          placeholder="https://nexasphere-bi.onrender.com/api"
           placeholderTextColor="#94A3B8"
         />
 
@@ -115,7 +115,7 @@ export default function SettingsScreen() {
           <View style={styles.stepNum}><Text style={styles.stepNumText}>1</Text></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.stepTitle}>Backend is hosted on Fly.io</Text>
-            <Text style={styles.stepCode}>https://nexasphere-bi.fly.dev/api</Text>
+            <Text style={styles.stepCode}>https://nexasphere-bi.onrender.com/api</Text>
             <Text style={styles.stepHint}>No setup needed — the app connects automatically</Text>
           </View>
         </View>

@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const BASE_KEY = '@nexasphere_api_base';
 const CONNECTED_KEY = '@nexasphere_connected';
 
-const HOSTED_BASE = 'https://nexasphere-bi.fly.dev/api';
+const HOSTED_BASE = 'https://nexasphere-bi.onrender.com/api';
 
 function getDefaultBase() {
   return HOSTED_BASE;

@@ -41,23 +41,20 @@ jobs:
           pytest
 
   # -------------------------------------------------------------
-  # JOB 2: DEPLOY BACKEND TO FLY.IO
+  # JOB 2: DEPLOY BACKEND TO RENDER.COM
+  # (Auto-deploys when repo is connected to Render dashboard)
+  # Manual trigger via RENDER_DEPLOY_HOOK secret if configured
   # -------------------------------------------------------------
   deploy-backend:
     needs: test-backend
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Fly CLI
-        uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Deploy to Fly.io
-        run: flyctl deploy --config fly.toml --remote-only
+      - name: Trigger Render Deploy
+        if: env.RENDER_DEPLOY_HOOK != ''
+        run: curl -X POST "$RENDER_DEPLOY_HOOK"
         env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
 
   # -------------------------------------------------------------
   # JOB 3: FRONTEND BUILD & GITHUB PAGES DEPLOYMENT
