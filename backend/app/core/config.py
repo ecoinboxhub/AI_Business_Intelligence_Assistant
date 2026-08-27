@@ -11,8 +11,7 @@ class Settings(BaseSettings):
     # send no Origin header and are unaffected.
     CORS_ORIGINS: str = os.getenv(
         "CORS_ORIGINS",
-        "http://localhost:3030,http://127.0.0.1:3030,https://ecoinboxhub.github.io,"
-        "http://localhost:8091,http://127.0.0.1:8091",
+        "*",
     )
 
     @property
