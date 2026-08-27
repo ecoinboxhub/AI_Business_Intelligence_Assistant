@@ -1,4 +1,4 @@
-const API_BASE = 'https://nexasphere-bi.onrender.com/api';
+const API_BASE = 'https://ai-business-intelligence-assistant.onrender.com/api';
 
 async function handle(res, label) {
   if (!res.ok) throw new Error(`${label} failed (${res.status})`);
