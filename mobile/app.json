@@ -26,7 +26,8 @@
       "versionCode": 1,
       "permissions": [
         "android.permission.INTERNET"
-      ]
+      ],
+      "usesCleartextTraffic": true
     },
     "web": {
       "bundler": "metro",

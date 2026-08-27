@@ -124,6 +124,8 @@ jobs:
           sed -i "s/def enableProguardInReleaseBuilds = (findProperty('android.enableProguardInReleaseBuilds') ?.*/def enableProguardInReleaseBuilds = (findProperty('android.enableProguardInReleaseBuilds') ?: true).toBoolean()/" mobile/android/app/build.gradle
           # Enable resource shrinking
           sed -i 's/shrinkResources (findProperty(.android.enableShrinkResourcesInReleaseBuilds.)?.toBoolean() ?: false)/shrinkResources (findProperty("android.enableShrinkResourcesInReleaseBuilds")?.toBoolean() ?: true)/' mobile/android/app/build.gradle
+          # Enable cleartext HTTP traffic for local network access
+          sed -i 's|<application |<application android:usesCleartextTraffic="true" |' mobile/android/app/src/main/AndroidManifest.xml
           echo "Optimizations applied"
 
       - name: Make Gradlew Executable
