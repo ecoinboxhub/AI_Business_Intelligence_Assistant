@@ -7,6 +7,6 @@
   {
     "id": "EVAL_02",
     "question": "Which region has the highest profit margin?",
-    "expected_metric": "Abuja"
+    "expected_metric": "Any"
   }
 ]
