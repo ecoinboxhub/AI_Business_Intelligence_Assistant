@@ -67,7 +67,7 @@ export default function SettingsScreen() {
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
-          placeholder="http://192.168.1.100:5050/api"
+          placeholder="https://nexasphere-bi.fly.dev/api"
           placeholderTextColor="#94A3B8"
         />
 
@@ -109,29 +109,21 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.helpTitle}>How to connect</Text>
+        <Text style={styles.helpTitle}>How it works</Text>
 
         <View style={styles.helpStep}>
           <View style={styles.stepNum}><Text style={styles.stepNumText}>1</Text></View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.stepTitle}>Start the backend server</Text>
-            <Text style={styles.stepCode}>cd backend{'\n'}python -m uvicorn app.main:app --port 5050</Text>
+            <Text style={styles.stepTitle}>Backend is hosted on Fly.io</Text>
+            <Text style={styles.stepCode}>https://nexasphere-bi.fly.dev/api</Text>
+            <Text style={styles.stepHint}>No setup needed — the app connects automatically</Text>
           </View>
         </View>
 
         <View style={styles.helpStep}>
           <View style={styles.stepNum}><Text style={styles.stepNumText}>2</Text></View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.stepTitle}>Find your machine&apos;s IP address</Text>
-            <Text style={styles.stepCode}>Windows: ipconfig{'\n'}Mac/Linux: ifconfig</Text>
-            <Text style={styles.stepHint}>Look for Wi-Fi or Ethernet IPv4 (e.g. 192.168.1.100)</Text>
-          </View>
-        </View>
-
-        <View style={styles.helpStep}>
-          <View style={styles.stepNum}><Text style={styles.stepNumText}>3</Text></View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.stepTitle}>Enter the URL above</Text>
+            <Text style={styles.stepTitle}>Or connect to your own backend</Text>
             <Text style={styles.stepCode}>http://YOUR_IP:5050/api</Text>
             <Text style={styles.stepHint}>Both devices must be on the same Wi-Fi network</Text>
           </View>

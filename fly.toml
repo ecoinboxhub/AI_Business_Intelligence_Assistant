@@ -1,0 +1,32 @@
+# fly.toml — NexaSphere AI BI Backend
+# https://fly.io/docs/reference/configuration/
+
+app = "nexasphere-bi"
+primary = "iad"
+
+[build]
+  dockerfile = "backend/Dockerfile"
+
+[env]
+  PORT = "5050"
+  AI_MODEL = "gemini-2.5-flash"
+  MOCK_DATASET_SIZE = "500000"
+  MOCK_DELIVERY_SIZE = "100000"
+  CORS_ORIGINS = "https://ecoinboxhub.github.io,https://nexasphere-bi.fly.dev,http://localhost:3030"
+
+[http_service]
+  internal_port = 5050
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 50
+    soft_limit = 25
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

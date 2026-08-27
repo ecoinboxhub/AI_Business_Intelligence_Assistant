@@ -1,12 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 
 const BASE_KEY = '@nexasphere_api_base';
 const CONNECTED_KEY = '@nexasphere_connected';
 
+const HOSTED_BASE = 'https://nexasphere-bi.fly.dev/api';
+
 function getDefaultBase() {
-  if (Platform.OS === 'android') return 'http://10.0.2.2:5050/api';
-  return 'http://localhost:5050/api';
+  return HOSTED_BASE;
 }
 
 export async function getApiBase() {

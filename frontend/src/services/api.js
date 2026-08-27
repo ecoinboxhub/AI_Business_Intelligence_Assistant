@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5050/api';
+const API_BASE = 'https://nexasphere-bi.fly.dev/api';
 
 async function handle(res, label) {
   if (!res.ok) throw new Error(`${label} failed (${res.status})`);
