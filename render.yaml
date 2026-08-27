@@ -3,8 +3,7 @@ services:
     name: nexasphere-bi
     runtime: python
     plan: free
-    buildCommand: cd backend && pip install -r requirements.txt
-    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: backend/Dockerfile
     envVars:
       - key: GEMINI_API_KEY
         sync: false
@@ -16,4 +15,3 @@ services:
         value: "100000"
       - key: CORS_ORIGINS
         value: "https://ecoinboxhub.github.io,https://nexasphere-bi.onrender.com,http://localhost:3030"
-    healthCheckPath: /api/health
