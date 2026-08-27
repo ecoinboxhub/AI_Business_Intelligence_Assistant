@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from app.ai.service import ai_service
+from app.data.mock_dataset import load_all_datasets
 from app.analysis.duckdb_engine import init_duckdb_tables, run_fast_query
 from app.analysis.kpi_engine import calculate_top_level_kpis, generate_executive_insights
 from app.analysis.revenue_analysis import (
@@ -140,6 +141,12 @@ def _attach_metadata(res: dict, entry: dict | None = None) -> dict:
 
 
 app = FastAPI(title=settings.PROJECT_NAME)
+
+
+@app.on_event("startup")
+def _preload_data():
+    load_all_datasets()
+    init_duckdb_tables()
 
 _cors_origins = settings.cors_origins
 if _cors_origins == ["*"]:
