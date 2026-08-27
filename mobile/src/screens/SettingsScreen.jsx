@@ -35,9 +35,11 @@ export default function SettingsScreen({ onSaved }) {
         placeholder="http://localhost:5050/api"
       />
       <Text style={styles.hint}>
-        iOS simulator: http://localhost:5050{'\n'}
-        Android emulator: http://10.0.2.2:5050{'\n'}
-        Physical device: http://192.168.x.x:5050 (your PC&apos;s LAN IP)
+        Run the backend first:{'\n'}
+        cd backend && python -m uvicorn app.main:app --port 5050{'\n\n'}
+        Then enter your machine&apos;s IP on the same WiFi:{'\n'}
+        Example: http://192.168.1.100:5050/api{'\n\n'}
+        The app will remember this URL for next time.
       </Text>
 
       <TouchableOpacity style={styles.saveBtn} onPress={save}>

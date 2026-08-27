@@ -82,7 +82,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   # -------------------------------------------------------------
-  # JOB 3: MOBILE APK BUILD & GITHUB RELEASES PUBLISHING
+  # JOB 3: ANDROID APK BUILD & GITHUB RELEASES
   # -------------------------------------------------------------
   release-mobile:
     needs: test-backend
@@ -97,24 +97,48 @@ jobs:
         with:
           node-version: 20
 
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Install Mobile Dependencies
         run: |
           cd mobile
           npm ci
 
-      - name: Export Expo Web/Android Bundle
+      - name: Generate Native Android Project
         run: |
           cd mobile
-          npx expo export --platform web
+          npx expo prebuild --platform android --clean
 
-      - name: Zip Bundle Artifact
+      - name: Make Gradlew Executable
+        run: chmod +x mobile/android/gradlew
+
+      - name: Build Release APK
         run: |
-          cd mobile/dist
-          zip -r ../../mobile-release.zip .
+          cd mobile/android
+          ./gradlew assembleRelease
 
-      - name: Create GitHub Release & Upload Binary
+      - name: Locate APK
+        id: find-apk
+        run: |
+          APK_PATH=$(find mobile/android -name "*.apk" -type f | head -1)
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          echo "Found APK: $APK_PATH"
+
+      - name: Rename APK
+        run: |
+          cp "${{ steps.find-apk.outputs.apk_path }}" NexaSphere-Mobile-v${GITHUB_REF_NAME#v}.apk
+
+      - name: Create GitHub Release & Upload APK
         uses: softprops/action-gh-release@v1
         with:
-          files: mobile-release.zip
+          files: NexaSphere-Mobile-v${{ github.ref_name }}.apk
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

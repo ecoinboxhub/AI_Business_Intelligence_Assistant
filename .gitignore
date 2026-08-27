@@ -21,6 +21,8 @@ venv/
 # --- Expo / React Native ---
 .expo/
 *.orig.*
+mobile/android/
+mobile/ios/
 
 # --- OS / editor ---
 .DS_Store
@@ -36,3 +38,6 @@ coverage/
 
 # --- Submission artifacts (generated summaries, never committed) ---
 submission/
+
+# --- Generated social media posts (never committed) ---
+Posts Generator/
